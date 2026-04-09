@@ -1,0 +1,71 @@
+name: Auto Minify Code
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "**/*.css"
+      - "**/*.html"
+      - "**/*.js"
+
+# Prevent parallel runs from conflicting on the commit step
+concurrency:
+  group: minify-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  minify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Minifiers
+        run: npm install -g html-minifier-terser clean-css-cli terser
+
+      - name: Minify HTML
+        run: |
+          find . -name "*.html" \
+            -not -path "./.git/*" \
+            -not -name "*.min.html" | while read f; do
+            html-minifier-terser \
+              --collapse-whitespace \
+              --remove-comments \
+              --remove-optional-tags \
+              --remove-redundant-attributes \
+              --remove-script-type-attributes \
+              --use-short-doctype \
+              --minify-css true \
+              --minify-js true \
+              "$f" -o "$f"
+          done
+
+      - name: Minify CSS
+        run: |
+          find . -name "*.css" \
+            -not -path "./.git/*" \
+            -not -name "*.min.css" | while read f; do
+            cleancss -o "$f" "$f"
+          done
+
+      - name: Minify JavaScript
+        run: |
+          find . -name "*.js" \
+            -not -path "./.git/*" \
+            -not -name "*.min.js" | while read f; do
+            terser "$f" -o "$f" -c -m
+          done
+
+      - name: Commit Minified Files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Bot: Automated code minification [skip ci]"
