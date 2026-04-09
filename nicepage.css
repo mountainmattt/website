@@ -46395,15 +46395,21 @@ a.u-link.u-text-hover-color-var:hover {
   }
 }
 @media (max-width: 991px) {
+  .u-header .u-image-1 {
+    margin-top: 24px;
+  }
+
   .u-header .u-menu-1 {
     width: auto;
-    margin-top: 20px;
-    margin-right: -35px;
-    margin-left: -35px;
+    margin: 24px auto 2px 0;
   }
 }
 
-
+@media (max-width: 575px) {
+  .u-header .u-menu-1 {
+    margin-left: -20px;
+  }
+}
  .u-footer {
   background-image: none;
 }
